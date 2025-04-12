@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import paymentRoutes from './routes/payment.route';
+import paymentRoutes from './routes/v1/payment.route';
 import helmet from 'helmet';
 import xss from "./middlewares/xss";
 import compression from 'compression';

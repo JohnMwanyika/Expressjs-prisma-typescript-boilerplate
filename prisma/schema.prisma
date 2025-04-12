@@ -15,6 +15,7 @@ model Token {
   expires     DateTime
   blacklisted Boolean
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   userId      Int
   User        User      @relation(fields: [userId], references: [id])
 }
@@ -22,7 +23,7 @@ model Token {
 model User {
   email           String   @unique
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt
   isEmailVerified Boolean  @default(false)
   name            String?
   password        String
