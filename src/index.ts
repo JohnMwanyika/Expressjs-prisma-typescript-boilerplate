@@ -13,6 +13,7 @@ import { jwtStrategy } from './config/passport';
 import { authLimiter } from './middlewares/rateLimiter';
 import ApiError from './utils/ApiError';
 import httpStatus from 'http-status'
+import routes from './routes/v1';
 
 const app = express();
 
@@ -63,7 +64,7 @@ io.on('connection', (socket) => {
 
 //attach routes
 app.use('/api/payment', paymentRoutes);
-
+app.use('/v1', routes)
 
 app.get('/', (req, res) => {
     res.send('Hello TypeScript with Express!');
