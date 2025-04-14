@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 import config from '../config/config';
 import userService from './user.service';
 import ApiError from '../utils/ApiError';
-import { Token, TokenType } from '../../generated/prisma';
+import { Token, TokenType } from '../generated/prisma-client-js';
 import prisma from '../client';
 import { AuthTokensResponse } from '../types/response';
 

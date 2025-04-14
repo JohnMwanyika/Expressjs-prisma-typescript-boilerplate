@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
 import { roleRights } from '../config/roles';
 import { NextFunction, Request, Response } from 'express';
-import { User } from '../../generated/prisma';
+import { User } from '../generated/prisma-client-js';
 
 /**
  * A callback function used to verify user authentication and authorization.

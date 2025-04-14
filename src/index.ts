@@ -1,81 +1,60 @@
-import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import paymentRoutes from './routes/v1/payment.route';
-import helmet from 'helmet';
-import xss from "./middlewares/xss";
-import compression from 'compression';
-import cors from 'cors';
+/**
+ * Entry point of the application. This script initializes the server, connects to the database,
+ * and sets up handlers for process signals and unexpected errors.
+ *
+ * - Connects to the SQL database using Prisma.
+ * - Starts the HTTP server on the configured port.
+ * - Handles graceful shutdown of the server on process termination signals.
+ * - Logs important events such as server start, database connection, and errors.
+ *
+ * Dependencies:
+ * - `prisma`: Prisma client instance for database connection.
+ * - `config`: Configuration object containing application settings.
+ * - `logger`: Logger instance for logging messages.
+ * - `httpServer`: HTTP server instance to handle incoming requests.
+ *
+ * Process Handlers:
+ * - `exitHandler`: Gracefully shuts down the server and exits the process.
+ * - `unexpectedErrorHandler`: Logs unexpected errors and triggers the exit handler.
+ * - Listens for `uncaughtException`, `unhandledRejection`, and `SIGTERM` signals.
+ */
+import { Server } from 'http';
+import prisma from './client';
 import config from './config/config';
-import morgan from './config/morgan';
-import passport from 'passport';
-import { jwtStrategy } from './config/passport';
-import { authLimiter } from './middlewares/rateLimiter';
-import ApiError from './utils/ApiError';
-import httpStatus from 'http-status'
-import routes from './routes/v1';
+import logger from './config/logger';
+import httpServer from './app';
 
-const app = express();
+let server: Server;
 
-//middleware responsible for logging info and errors on the console
-if (config.env !== 'test') {
-    app.use(morgan.successHandler);
-    app.use(morgan.errorHandler);
-}
+prisma.$connect().then(() => {
+  logger.info('Connected to SQL Database');
+  server = httpServer.listen(config.port, () => {
+    logger.info(`Listening to port ${config.port}`);
+  });
+});
 
-const httpServer = createServer(app);
-
-const io = new Server(
-    httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST", "PUT", "DELETE"]
-    }
-}
-);
-
-app.use(helmet()); //set security HTTP headers
-app.use(express.json()); //parse JSON bodies
-app.use(express.urlencoded({ extended: true })); //parse urlencoded request body
-app.use(xss()); // sanitize request data
-app.use(compression()); //gzip compression for improving response speed
-app.use(cors()); //enable cross origins
-// app.options('*', cors())
-app.use(passport.initialize()); // jwt authentication
-passport.use('jwt', jwtStrategy);
-
-// limit repeated failed requests to auth endpoints
-if (config.env === 'production') {
-    app.use('/v1/auth', authLimiter);
-}
-
-//expose io instance globally through app.locals
-app.locals.io = io;
-
-
-// Handle socket connections
-io.on('connection', (socket) => {
-    console.log(`🔥 New socket connected: ${socket.id}`);
-
-    socket.on('disconnect', () => {
-        console.log(`❌ Socket disconnected: ${socket.id}`);
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(1);
     });
-});
+  } else {
+    process.exit(1);
+  }
+};
 
-//attach routes
-app.use('/api/payment', paymentRoutes);
-app.use('/v1', routes)
+const unexpectedErrorHandler = (error: unknown) => {
+  logger.error(error);
+  exitHandler();
+};
 
-app.get('/', (req, res) => {
-    res.send('Hello TypeScript with Express!');
-});
+process.on('uncaughtException', unexpectedErrorHandler);
+process.on('unhandledRejection', unexpectedErrorHandler);
 
-// send back a 404 error for any unknown api request
-app.use((req, res, next) => {
-    next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
-});
-
-const PORT = config.port;
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received');
+  if (server) {
+    server.close();
+  }
 });

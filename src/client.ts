@@ -1,5 +1,6 @@
 // import { PrismaClient } from '@prisma/client';
-import { PrismaClient } from '../generated/prisma';
+// import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from './generated/prisma-client-js/client';
 import config from './config/config';
 
 // add prisma to the NodeJS global type

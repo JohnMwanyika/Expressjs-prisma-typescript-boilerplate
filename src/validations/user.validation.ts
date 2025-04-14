@@ -1,4 +1,4 @@
-import { Role } from '../../generated/prisma';
+import { Role } from '../generated/prisma-client-js';
 import Joi from 'joi';
 import { password } from './custom.validation';
 

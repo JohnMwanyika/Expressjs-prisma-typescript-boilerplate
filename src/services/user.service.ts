@@ -1,4 +1,4 @@
-import { User, Role, Prisma } from '../../generated/prisma';
+import { User, Role, Prisma } from '../generated/prisma-client-js';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
