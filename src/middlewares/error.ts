@@ -49,6 +49,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   res.locals.errorMessage = err.message;
 
   const response = {
+    status: "error",
     code: statusCode,
     message,
     ...(config.env === 'development' && { stack: err.stack })
