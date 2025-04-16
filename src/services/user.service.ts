@@ -12,7 +12,8 @@ import { encryptPassword } from '../utils/encryption';
 const createUser = async (
   email: string,
   password: string,
-  name?: string,
+  firstName: string,
+  lastName: string,
   role: Role = Role.USER
 ): Promise<User> => {
   if (await getUserByEmail(email)) {
@@ -21,7 +22,8 @@ const createUser = async (
   return prisma.user.create({
     data: {
       email,
-      name,
+      firstName,
+      lastName,
       password: await encryptPassword(password),
       role
     }
@@ -48,14 +50,15 @@ const queryUsers = async <Key extends keyof User>(
   keys: Key[] = [
     'id',
     'email',
-    'name',
+    'firstName',
+    'lastName',
     'password',
     'role',
     'isEmailVerified',
     'createdAt',
     'updatedAt'
   ] as Key[]
-): Promise<Pick<User, Key>[]> => {
+): Promise<{ users: Pick<User, Key>[]; totalCount: number }> => {
   const page = options.page ?? 1;
   const limit = options.limit ?? 10;
   const sortBy = options.sortBy;
@@ -63,11 +66,20 @@ const queryUsers = async <Key extends keyof User>(
   const users = await prisma.user.findMany({
     where: filter,
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
-    skip: page * limit,
+    skip: (page - 1) * limit,
     take: limit,
     orderBy: sortBy ? { [sortBy]: sortType } : undefined
   });
-  return users as Pick<User, Key>[];
+  // Get total count
+  const totalCount = await prisma.user.count({
+    where: filter
+  });
+  // console.log(await prisma.user.findMany())
+  // return users as Pick<User, Key>[];
+  return {
+    users: users as Pick<User, Key>[],
+    totalCount
+  }
 };
 
 /**
@@ -81,7 +93,8 @@ const getUserById = async <Key extends keyof User>(
   keys: Key[] = [
     'id',
     'email',
-    'name',
+    'firstName',
+    'lastName',
     'password',
     'role',
     'isEmailVerified',
@@ -91,6 +104,7 @@ const getUserById = async <Key extends keyof User>(
 ): Promise<Pick<User, Key> | null> => {
   return prisma.user.findUnique({
     where: { id },
+    // select: Object.fromEntries(keys.map(k => [k, true]))
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
   }) as Promise<Pick<User, Key> | null>;
 };
@@ -106,7 +120,8 @@ const getUserByEmail = async <Key extends keyof User>(
   keys: Key[] = [
     'id',
     'email',
-    'name',
+    'firstName',
+    'lastName',
     'password',
     'role',
     'isEmailVerified',
@@ -131,7 +146,7 @@ const updateUserById = async <Key extends keyof User>(
   updateBody: Prisma.UserUpdateInput,
   keys: Key[] = ['id', 'email', 'name', 'role'] as Key[]
 ): Promise<Pick<User, Key> | null> => {
-  const user = await getUserById(userId, ['id', 'email', 'name']);
+  const user = await getUserById(userId, ['id', 'email', 'firstName', 'lastName']);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
