@@ -21,16 +21,28 @@ model Token {
 }
 
 model User {
-  email           String   @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  isEmailVerified Boolean  @default(false)
+  email           String        @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isEmailVerified Boolean       @default(false)
   firstName       String
   lastName        String
   password        String
-  role            Role     @default(USER)
-  id              Int      @id @default(autoincrement())
+  role            Role          @default(USER)
+  id              Int           @id @default(autoincrement())
   Token           Token[]
+  Transaction     Transaction[]
+  Profile         Profile?
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  bio       String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id])
 }
 
 enum Role {
@@ -43,4 +55,45 @@ enum TokenType {
   REFRESH
   RESET_PASSWORD
   VERIFY_EMAIL
+}
+
+model Transaction {
+  id              Int            @id @default(autoincrement())
+  phone           String
+  amount          Float
+  status          String
+  userId          Int
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  User            User           @relation(fields: [userId], references: [id])
+  paymentMethodId Int?
+  PaymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+
+  MpesaTransaction MpesaTransaction[]
+}
+
+model PaymentMethod {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model MpesaTransaction {
+  id                  Int      @id @default(autoincrement())
+  phoneNumber         String
+  amount              Float
+  checkoutRequestId   String   @unique
+  merchantRequestId   String?
+  responseCode        String?
+  responseDescription String?
+  resultCode          String?
+  resultDesc          String?
+  status              String   @default("PENDING") // or enum
+  transactionDate     DateTime @default(now())
+  transactionId       Int? // From M-Pesa, optional
+
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
 }

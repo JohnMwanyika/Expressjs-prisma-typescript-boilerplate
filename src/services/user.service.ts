@@ -171,6 +171,8 @@ const deleteUserById = async (userId: number): Promise<User> => {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
+  // Delete related tokens first
+  await prisma.token.deleteMany({ where: { userId: user.id } });
   await prisma.user.delete({ where: { id: user.id } });
   return user;
 };

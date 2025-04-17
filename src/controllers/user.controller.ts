@@ -2,14 +2,15 @@ import httpStatus from 'http-status';
 import pick from '../utils/pick';
 import ApiError from '../utils/ApiError';
 import catchAsync from '../utils/catchAsync';
-import { userService } from '../services';
+import { profileService, userService } from '../services';
 
 const createUser = catchAsync(async (req, res) => {
   const { email, password, name, role } = req.body;
   const user = await userService.createUser(email, password, name, role);
+  const profile = await profileService.createUserProfile(user.id, req.body.bio, req.body.avatarUrl);
   res.status(httpStatus.CREATED).send({
     status: "success",
-    data: user,
+    data: { ...user, ...profile },
   });
 });
 
@@ -25,10 +26,12 @@ const getUsers = catchAsync(async (req, res) => {
   // res.send(result);
   res.send({
     status: 'success',
-    data: users,
-    page: options.page || 1,
-    limit: options.limit || 10,
-    totalCount
+    data: {
+      users,
+      page: options.page || 1,
+      limit: options.limit || 10,
+      totalCount
+    },
   });
 });
 
@@ -54,10 +57,10 @@ const updateUser = catchAsync(async (req, res) => {
 });
 
 const deleteUser = catchAsync(async (req, res) => {
-  await userService.deleteUserById(req.params.userId);
-  res.status(httpStatus.NO_CONTENT).send({
+  const deletedUser = await userService.deleteUserById(req.params.userId);
+  res.status(httpStatus.OK).send({
     status: "success",
-    data: null
+    data: deletedUser
   });
 });
 

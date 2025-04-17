@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import catchAsync from '../utils/catchAsync';
-import { authService, userService, tokenService, emailService } from '../services';
+import { authService, userService, tokenService, emailService, profileService } from '../services';
 import exclude from '../utils/exclude';
 import { User } from '../generated/prisma-client-js';
 
@@ -8,8 +8,9 @@ const register = catchAsync(async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   const user = await userService.createUser(email, password, firstName, lastName);
   const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
+  const profile = await profileService.createUserProfile(user.id, req.body.bio, req.body.avatarUrl);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ status: "success", data: { user: userWithoutPassword, tokens } });
+  res.status(httpStatus.CREATED).send({ status: "success", data: { user: userWithoutPassword, tokens, profile } });
 });
 
 const login = catchAsync(async (req, res) => {
