@@ -46,15 +46,7 @@ export type MpesaTransaction = runtime.Types.Result.DefaultSelection<Prisma.$Mpe
  * Enums
  */
 export namespace $Enums {
-  export const Role = {
-  USER: 'USER',
-  ADMIN: 'ADMIN'
-} as const
-
-export type Role = (typeof Role)[keyof typeof Role]
-
-
-export const TokenType = {
+  export const TokenType = {
   ACCESS: 'ACCESS',
   REFRESH: 'REFRESH',
   RESET_PASSWORD: 'RESET_PASSWORD',
@@ -63,15 +55,74 @@ export const TokenType = {
 
 export type TokenType = (typeof TokenType)[keyof typeof TokenType]
 
+
+export const Role = {
+  USER: 'USER',
+  ADMIN: 'ADMIN'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+} as const
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
+export const PaymentMethodType = {
+  MPESA: 'MPESA',
+  PAYPAL: 'PAYPAL',
+  CARD: 'CARD'
+} as const
+
+export type PaymentMethodType = (typeof PaymentMethodType)[keyof typeof PaymentMethodType]
+
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const PaymentMethodStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
+} as const
+
+export type PaymentMethodStatus = (typeof PaymentMethodStatus)[keyof typeof PaymentMethodStatus]
+
 }
+
+export type TokenType = $Enums.TokenType
+
+export const TokenType = $Enums.TokenType
 
 export type Role = $Enums.Role
 
 export const Role = $Enums.Role
 
-export type TokenType = $Enums.TokenType
+export type UserStatus = $Enums.UserStatus
 
-export const TokenType = $Enums.TokenType
+export const UserStatus = $Enums.UserStatus
+
+export type PaymentMethodType = $Enums.PaymentMethodType
+
+export const PaymentMethodType = $Enums.PaymentMethodType
+
+export type PaymentStatus = $Enums.PaymentStatus
+
+export const PaymentStatus = $Enums.PaymentStatus
+
+export type PaymentMethodStatus = $Enums.PaymentMethodStatus
+
+export const PaymentMethodStatus = $Enums.PaymentMethodStatus
 
 
 
@@ -110,17 +161,16 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": null
+        "value": "postgresql://postgres:admin@localhost:5432/nisort?schema=public"
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Token {\n  id          Int       @id @default(autoincrement())\n  token       String\n  type        TokenType\n  expires     DateTime\n  blacklisted Boolean\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n  userId      Int\n  User        User      @relation(fields: [userId], references: [id])\n}\n\nmodel User {\n  email           String        @unique\n  createdAt       DateTime      @default(now())\n  updatedAt       DateTime      @updatedAt\n  isEmailVerified Boolean       @default(false)\n  firstName       String\n  lastName        String\n  password        String\n  role            Role          @default(USER)\n  id              Int           @id @default(autoincrement())\n  Token           Token[]\n  Transaction     Transaction[]\n  Profile         Profile?\n}\n\nmodel Profile {\n  id        Int      @id @default(autoincrement())\n  userId    Int      @unique\n  bio       String?\n  avatarUrl String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  User      User     @relation(fields: [userId], references: [id])\n}\n\nenum Role {\n  USER\n  ADMIN\n}\n\nenum TokenType {\n  ACCESS\n  REFRESH\n  RESET_PASSWORD\n  VERIFY_EMAIL\n}\n\nmodel Transaction {\n  id              Int            @id @default(autoincrement())\n  phone           String\n  amount          Float\n  status          String\n  userId          Int\n  createdAt       DateTime       @default(now())\n  updatedAt       DateTime       @updatedAt\n  User            User           @relation(fields: [userId], references: [id])\n  paymentMethodId Int?\n  PaymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])\n\n  MpesaTransaction MpesaTransaction[]\n}\n\nmodel PaymentMethod {\n  id           Int           @id @default(autoincrement())\n  name         String\n  description  String\n  transactions Transaction[]\n  createdAt    DateTime      @default(now())\n  updatedAt    DateTime      @updatedAt\n}\n\nmodel MpesaTransaction {\n  id                  Int      @id @default(autoincrement())\n  phoneNumber         String\n  amount              Float\n  checkoutRequestId   String   @unique\n  merchantRequestId   String?\n  responseCode        String?\n  responseDescription String?\n  resultCode          String?\n  resultDesc          String?\n  status              String   @default(\"PENDING\") // or enum\n  transactionDate     DateTime @default(now())\n  transactionId       Int? // From M-Pesa, optional\n\n  transaction Transaction? @relation(fields: [transactionId], references: [id])\n}\n",
-  "inlineSchemaHash": "ffcd27e996b6e7d0fd2a4e1d65d95414f2f7615875686a4917c9df38cfcb446c",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum TokenType {\n  ACCESS\n  REFRESH\n  RESET_PASSWORD\n  VERIFY_EMAIL\n}\n\nmodel Token {\n  id          Int       @id @default(autoincrement())\n  token       String\n  type        TokenType\n  expires     DateTime\n  blacklisted Boolean\n  createdAt   DateTime  @default(now())\n  updatedAt   DateTime  @updatedAt\n  userId      Int\n  User        User      @relation(fields: [userId], references: [id])\n}\n\nenum Role {\n  USER\n  ADMIN\n}\n\nenum UserStatus {\n  ACTIVE\n  INACTIVE\n  SUSPENDED\n}\n\nmodel User {\n  email           String        @unique\n  createdAt       DateTime      @default(now())\n  updatedAt       DateTime      @updatedAt\n  isEmailVerified Boolean       @default(false)\n  firstName       String\n  lastName        String\n  password        String\n  status          UserStatus    @default(ACTIVE)\n  role            Role          @default(USER)\n  id              Int           @id @default(autoincrement())\n  Token           Token[]\n  Transaction     Transaction[]\n  Profile         Profile?\n}\n\nmodel Profile {\n  id        Int      @id @default(autoincrement())\n  userId    Int      @unique\n  bio       String?\n  avatarUrl String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  User      User     @relation(fields: [userId], references: [id])\n}\n\nmodel Transaction {\n  id              Int            @id @default(autoincrement())\n  phone           String\n  amount          Float\n  status          String\n  userId          Int\n  createdAt       DateTime       @default(now())\n  updatedAt       DateTime       @updatedAt\n  User            User           @relation(fields: [userId], references: [id])\n  paymentMethodId Int?\n  PaymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])\n\n  MpesaTransaction MpesaTransaction[]\n}\n\nenum PaymentMethodType {\n  MPESA\n  PAYPAL\n  CARD\n}\n\nenum PaymentStatus {\n  PENDING\n  SUCCESS\n  FAILED\n}\n\nenum PaymentMethodStatus {\n  ACTIVE\n  INACTIVE\n}\n\nmodel PaymentMethod {\n  id           Int                 @id @default(autoincrement())\n  name         PaymentMethodType\n  description  String?\n  status       PaymentMethodStatus @default(ACTIVE)\n  transactions Transaction[]\n  createdAt    DateTime            @default(now())\n  updatedAt    DateTime            @updatedAt\n}\n\n// M-Pesa transaction model\nmodel MpesaTransaction {\n  id                  Int           @id @default(autoincrement())\n  phoneNumber         String\n  amount              Float\n  checkoutRequestId   String        @unique\n  merchantRequestId   String?\n  responseCode        String?\n  responseDescription String?\n  resultCode          String?\n  resultDesc          String?\n  status              PaymentStatus @default(PENDING) // or enum\n  transactionDate     DateTime      @default(now())\n  transactionId       Int? // From M-Pesa, optional\n\n  transaction Transaction? @relation(fields: [transactionId], references: [id])\n}\n",
+  "inlineSchemaHash": "b252933b58e7cb586ae1aca92380b67540f7da3a26ec15a60dd323083335d21c",
   "copyEngine": true,
   "runtimeDataModel": {
     "models": {},
@@ -131,7 +181,7 @@ const config: runtime.GetPrismaClientConfig = {
 }
 config.dirname = __dirname
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Token\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"token\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"type\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"TokenType\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expires\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"blacklisted\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Boolean\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TokenToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"User\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"email\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"isEmailVerified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"firstName\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastName\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"password\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"role\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Role\",\"nativeType\":null,\"default\":\"USER\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Token\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Token\",\"nativeType\":null,\"relationName\":\"TokenToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Transaction\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"TransactionToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Profile\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Profile\",\"nativeType\":null,\"relationName\":\"ProfileToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Profile\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bio\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatarUrl\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"ProfileToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Transaction\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phone\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"amount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TransactionToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"paymentMethodId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"PaymentMethod\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"PaymentMethod\",\"nativeType\":null,\"relationName\":\"PaymentMethodToTransaction\",\"relationFromFields\":[\"paymentMethodId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"MpesaTransaction\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"MpesaTransaction\",\"nativeType\":null,\"relationName\":\"MpesaTransactionToTransaction\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"PaymentMethod\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"description\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactions\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"PaymentMethodToTransaction\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"MpesaTransaction\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"amount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"checkoutRequestId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"merchantRequestId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"responseCode\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"responseDescription\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resultCode\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resultDesc\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":null,\"default\":\"PENDING\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactionDate\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactionId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transaction\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"MpesaTransactionToTransaction\",\"relationFromFields\":[\"transactionId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{\"Role\":{\"values\":[{\"name\":\"USER\",\"dbName\":null},{\"name\":\"ADMIN\",\"dbName\":null}],\"dbName\":null},\"TokenType\":{\"values\":[{\"name\":\"ACCESS\",\"dbName\":null},{\"name\":\"REFRESH\",\"dbName\":null},{\"name\":\"RESET_PASSWORD\",\"dbName\":null},{\"name\":\"VERIFY_EMAIL\",\"dbName\":null}],\"dbName\":null}},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Token\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"token\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"type\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"TokenType\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expires\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"blacklisted\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Boolean\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TokenToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"User\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"email\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"isEmailVerified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"firstName\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastName\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"password\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"UserStatus\",\"nativeType\":null,\"default\":\"ACTIVE\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"role\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Role\",\"nativeType\":null,\"default\":\"USER\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Token\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Token\",\"nativeType\":null,\"relationName\":\"TokenToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Transaction\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"TransactionToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"Profile\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Profile\",\"nativeType\":null,\"relationName\":\"ProfileToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Profile\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"bio\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatarUrl\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"ProfileToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Transaction\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phone\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"amount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true},{\"name\":\"User\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TransactionToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"paymentMethodId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"PaymentMethod\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"PaymentMethod\",\"nativeType\":null,\"relationName\":\"PaymentMethodToTransaction\",\"relationFromFields\":[\"paymentMethodId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"MpesaTransaction\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"MpesaTransaction\",\"nativeType\":null,\"relationName\":\"MpesaTransactionToTransaction\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"PaymentMethod\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"name\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"PaymentMethodType\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"description\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"PaymentMethodStatus\",\"nativeType\":null,\"default\":\"ACTIVE\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactions\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"PaymentMethodToTransaction\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"MpesaTransaction\":{\"dbName\":null,\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"amount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Float\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"checkoutRequestId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"merchantRequestId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"responseCode\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"responseDescription\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resultCode\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resultDesc\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"PaymentStatus\",\"nativeType\":null,\"default\":\"PENDING\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactionDate\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transactionId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transaction\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Transaction\",\"nativeType\":null,\"relationName\":\"MpesaTransactionToTransaction\",\"relationFromFields\":[\"transactionId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{\"TokenType\":{\"values\":[{\"name\":\"ACCESS\",\"dbName\":null},{\"name\":\"REFRESH\",\"dbName\":null},{\"name\":\"RESET_PASSWORD\",\"dbName\":null},{\"name\":\"VERIFY_EMAIL\",\"dbName\":null}],\"dbName\":null},\"Role\":{\"values\":[{\"name\":\"USER\",\"dbName\":null},{\"name\":\"ADMIN\",\"dbName\":null}],\"dbName\":null},\"UserStatus\":{\"values\":[{\"name\":\"ACTIVE\",\"dbName\":null},{\"name\":\"INACTIVE\",\"dbName\":null},{\"name\":\"SUSPENDED\",\"dbName\":null}],\"dbName\":null},\"PaymentMethodType\":{\"values\":[{\"name\":\"MPESA\",\"dbName\":null},{\"name\":\"PAYPAL\",\"dbName\":null},{\"name\":\"CARD\",\"dbName\":null}],\"dbName\":null},\"PaymentStatus\":{\"values\":[{\"name\":\"PENDING\",\"dbName\":null},{\"name\":\"SUCCESS\",\"dbName\":null},{\"name\":\"FAILED\",\"dbName\":null}],\"dbName\":null},\"PaymentMethodStatus\":{\"values\":[{\"name\":\"ACTIVE\",\"dbName\":null},{\"name\":\"INACTIVE\",\"dbName\":null}],\"dbName\":null}},\"types\":{}}")
 config.engineWasm = undefined
 config.compilerWasm = undefined
 
@@ -2630,6 +2680,7 @@ export namespace Prisma {
     firstName: string | null
     lastName: string | null
     password: string | null
+    status: $Enums.UserStatus | null
     role: $Enums.Role | null
     id: number | null
   }
@@ -2642,6 +2693,7 @@ export namespace Prisma {
     firstName: string | null
     lastName: string | null
     password: string | null
+    status: $Enums.UserStatus | null
     role: $Enums.Role | null
     id: number | null
   }
@@ -2654,6 +2706,7 @@ export namespace Prisma {
     firstName: number
     lastName: number
     password: number
+    status: number
     role: number
     id: number
     _all: number
@@ -2676,6 +2729,7 @@ export namespace Prisma {
     firstName?: true
     lastName?: true
     password?: true
+    status?: true
     role?: true
     id?: true
   }
@@ -2688,6 +2742,7 @@ export namespace Prisma {
     firstName?: true
     lastName?: true
     password?: true
+    status?: true
     role?: true
     id?: true
   }
@@ -2700,6 +2755,7 @@ export namespace Prisma {
     firstName?: true
     lastName?: true
     password?: true
+    status?: true
     role?: true
     id?: true
     _all?: true
@@ -2799,6 +2855,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status: $Enums.UserStatus
     role: $Enums.Role
     id: number
     _count: UserCountAggregateOutputType | null
@@ -2830,6 +2887,7 @@ export namespace Prisma {
     firstName?: boolean
     lastName?: boolean
     password?: boolean
+    status?: boolean
     role?: boolean
     id?: boolean
     Token?: boolean | User$TokenArgs<ExtArgs>
@@ -2846,6 +2904,7 @@ export namespace Prisma {
     firstName?: boolean
     lastName?: boolean
     password?: boolean
+    status?: boolean
     role?: boolean
     id?: boolean
   }, ExtArgs["result"]["user"]>
@@ -2858,6 +2917,7 @@ export namespace Prisma {
     firstName?: boolean
     lastName?: boolean
     password?: boolean
+    status?: boolean
     role?: boolean
     id?: boolean
   }, ExtArgs["result"]["user"]>
@@ -2870,11 +2930,12 @@ export namespace Prisma {
     firstName?: boolean
     lastName?: boolean
     password?: boolean
+    status?: boolean
     role?: boolean
     id?: boolean
   }
 
-  export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"email" | "createdAt" | "updatedAt" | "isEmailVerified" | "firstName" | "lastName" | "password" | "role" | "id", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"email" | "createdAt" | "updatedAt" | "isEmailVerified" | "firstName" | "lastName" | "password" | "status" | "role" | "id", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     Token?: boolean | User$TokenArgs<ExtArgs>
     Transaction?: boolean | User$TransactionArgs<ExtArgs>
@@ -2899,6 +2960,7 @@ export namespace Prisma {
       firstName: string
       lastName: string
       password: string
+      status: $Enums.UserStatus
       role: $Enums.Role
       id: number
     }, ExtArgs["result"]["user"]>
@@ -3334,6 +3396,7 @@ export namespace Prisma {
     readonly firstName: FieldRef<"User", 'String'>
     readonly lastName: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
+    readonly status: FieldRef<"User", 'UserStatus'>
     readonly role: FieldRef<"User", 'Role'>
     readonly id: FieldRef<"User", 'Int'>
   }
@@ -6140,16 +6203,18 @@ export namespace Prisma {
 
   export type PaymentMethodMinAggregateOutputType = {
     id: number | null
-    name: string | null
+    name: $Enums.PaymentMethodType | null
     description: string | null
+    status: $Enums.PaymentMethodStatus | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
   export type PaymentMethodMaxAggregateOutputType = {
     id: number | null
-    name: string | null
+    name: $Enums.PaymentMethodType | null
     description: string | null
+    status: $Enums.PaymentMethodStatus | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6158,6 +6223,7 @@ export namespace Prisma {
     id: number
     name: number
     description: number
+    status: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -6176,6 +6242,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6184,6 +6251,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6192,6 +6260,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -6285,8 +6354,9 @@ export namespace Prisma {
 
   export type PaymentMethodGroupByOutputType = {
     id: number
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description: string | null
+    status: $Enums.PaymentMethodStatus
     createdAt: Date
     updatedAt: Date
     _count: PaymentMethodCountAggregateOutputType | null
@@ -6314,6 +6384,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     transactions?: boolean | PaymentMethod$transactionsArgs<ExtArgs>
@@ -6324,6 +6395,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["paymentMethod"]>
@@ -6332,6 +6404,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["paymentMethod"]>
@@ -6340,11 +6413,12 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PaymentMethodOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentMethod"]>
+  export type PaymentMethodOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentMethod"]>
   export type PaymentMethodInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     transactions?: boolean | PaymentMethod$transactionsArgs<ExtArgs>
     _count?: boolean | PaymentMethodCountOutputTypeDefaultArgs<ExtArgs>
@@ -6359,8 +6433,9 @@ export namespace Prisma {
     }
     scalars: runtime.Types.Extensions.GetPayloadResult<{
       id: number
-      name: string
-      description: string
+      name: $Enums.PaymentMethodType
+      description: string | null
+      status: $Enums.PaymentMethodStatus
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["paymentMethod"]>
@@ -6788,8 +6863,9 @@ export namespace Prisma {
    */
   export interface PaymentMethodFieldRefs {
     readonly id: FieldRef<"PaymentMethod", 'Int'>
-    readonly name: FieldRef<"PaymentMethod", 'String'>
+    readonly name: FieldRef<"PaymentMethod", 'PaymentMethodType'>
     readonly description: FieldRef<"PaymentMethod", 'String'>
+    readonly status: FieldRef<"PaymentMethod", 'PaymentMethodStatus'>
     readonly createdAt: FieldRef<"PaymentMethod", 'DateTime'>
     readonly updatedAt: FieldRef<"PaymentMethod", 'DateTime'>
   }
@@ -7256,7 +7332,7 @@ export namespace Prisma {
     responseDescription: string | null
     resultCode: string | null
     resultDesc: string | null
-    status: string | null
+    status: $Enums.PaymentStatus | null
     transactionDate: Date | null
     transactionId: number | null
   }
@@ -7271,7 +7347,7 @@ export namespace Prisma {
     responseDescription: string | null
     resultCode: string | null
     resultDesc: string | null
-    status: string | null
+    status: $Enums.PaymentStatus | null
     transactionDate: Date | null
     transactionId: number | null
   }
@@ -7447,7 +7523,7 @@ export namespace Prisma {
     responseDescription: string | null
     resultCode: string | null
     resultDesc: string | null
-    status: string
+    status: $Enums.PaymentStatus
     transactionDate: Date
     transactionId: number | null
     _count: MpesaTransactionCountAggregateOutputType | null
@@ -7560,7 +7636,7 @@ export namespace Prisma {
       responseDescription: string | null
       resultCode: string | null
       resultDesc: string | null
-      status: string
+      status: $Enums.PaymentStatus
       transactionDate: Date
       transactionId: number | null
     }, ExtArgs["result"]["mpesaTransaction"]>
@@ -7996,7 +8072,7 @@ export namespace Prisma {
     readonly responseDescription: FieldRef<"MpesaTransaction", 'String'>
     readonly resultCode: FieldRef<"MpesaTransaction", 'String'>
     readonly resultDesc: FieldRef<"MpesaTransaction", 'String'>
-    readonly status: FieldRef<"MpesaTransaction", 'String'>
+    readonly status: FieldRef<"MpesaTransaction", 'PaymentStatus'>
     readonly transactionDate: FieldRef<"MpesaTransaction", 'DateTime'>
     readonly transactionId: FieldRef<"MpesaTransaction", 'Int'>
   }
@@ -8468,6 +8544,7 @@ export namespace Prisma {
     firstName: 'firstName',
     lastName: 'lastName',
     password: 'password',
+    status: 'status',
     role: 'role',
     id: 'id'
   } as const
@@ -8505,6 +8582,7 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     description: 'description',
+    status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   } as const
@@ -8623,6 +8701,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'UserStatus'
+   */
+  export type EnumUserStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'UserStatus[]'
+   */
+  export type ListEnumUserStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Role'
    */
   export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -8647,6 +8739,48 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentMethodType'
+   */
+  export type EnumPaymentMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodType'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentMethodType[]'
+   */
+  export type ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentMethodStatus'
+   */
+  export type EnumPaymentMethodStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentMethodStatus[]'
+   */
+  export type ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethodStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentStatus'
+   */
+  export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentStatus[]'
+   */
+  export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
     
   /**
    * Deep Input Types
@@ -8736,6 +8870,7 @@ export namespace Prisma {
     firstName?: StringFilter<"User"> | string
     lastName?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
+    status?: EnumUserStatusFilter<"User"> | $Enums.UserStatus
     role?: EnumRoleFilter<"User"> | $Enums.Role
     id?: IntFilter<"User"> | number
     Token?: TokenListRelationFilter
@@ -8751,6 +8886,7 @@ export namespace Prisma {
     firstName?: SortOrder
     lastName?: SortOrder
     password?: SortOrder
+    status?: SortOrder
     role?: SortOrder
     id?: SortOrder
     Token?: TokenOrderByRelationAggregateInput
@@ -8770,6 +8906,7 @@ export namespace Prisma {
     firstName?: StringFilter<"User"> | string
     lastName?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
+    status?: EnumUserStatusFilter<"User"> | $Enums.UserStatus
     role?: EnumRoleFilter<"User"> | $Enums.Role
     Token?: TokenListRelationFilter
     Transaction?: TransactionListRelationFilter
@@ -8784,6 +8921,7 @@ export namespace Prisma {
     firstName?: SortOrder
     lastName?: SortOrder
     password?: SortOrder
+    status?: SortOrder
     role?: SortOrder
     id?: SortOrder
     _count?: UserCountOrderByAggregateInput
@@ -8804,6 +8942,7 @@ export namespace Prisma {
     firstName?: StringWithAggregatesFilter<"User"> | string
     lastName?: StringWithAggregatesFilter<"User"> | string
     password?: StringWithAggregatesFilter<"User"> | string
+    status?: EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
     id?: IntWithAggregatesFilter<"User"> | number
   }
@@ -8953,8 +9092,9 @@ export namespace Prisma {
     OR?: PaymentMethodWhereInput[]
     NOT?: PaymentMethodWhereInput | PaymentMethodWhereInput[]
     id?: IntFilter<"PaymentMethod"> | number
-    name?: StringFilter<"PaymentMethod"> | string
-    description?: StringFilter<"PaymentMethod"> | string
+    name?: EnumPaymentMethodTypeFilter<"PaymentMethod"> | $Enums.PaymentMethodType
+    description?: StringNullableFilter<"PaymentMethod"> | string | null
+    status?: EnumPaymentMethodStatusFilter<"PaymentMethod"> | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFilter<"PaymentMethod"> | Date | string
     updatedAt?: DateTimeFilter<"PaymentMethod"> | Date | string
     transactions?: TransactionListRelationFilter
@@ -8963,7 +9103,8 @@ export namespace Prisma {
   export type PaymentMethodOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     transactions?: TransactionOrderByRelationAggregateInput
@@ -8974,8 +9115,9 @@ export namespace Prisma {
     AND?: PaymentMethodWhereInput | PaymentMethodWhereInput[]
     OR?: PaymentMethodWhereInput[]
     NOT?: PaymentMethodWhereInput | PaymentMethodWhereInput[]
-    name?: StringFilter<"PaymentMethod"> | string
-    description?: StringFilter<"PaymentMethod"> | string
+    name?: EnumPaymentMethodTypeFilter<"PaymentMethod"> | $Enums.PaymentMethodType
+    description?: StringNullableFilter<"PaymentMethod"> | string | null
+    status?: EnumPaymentMethodStatusFilter<"PaymentMethod"> | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFilter<"PaymentMethod"> | Date | string
     updatedAt?: DateTimeFilter<"PaymentMethod"> | Date | string
     transactions?: TransactionListRelationFilter
@@ -8984,7 +9126,8 @@ export namespace Prisma {
   export type PaymentMethodOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PaymentMethodCountOrderByAggregateInput
@@ -8999,8 +9142,9 @@ export namespace Prisma {
     OR?: PaymentMethodScalarWhereWithAggregatesInput[]
     NOT?: PaymentMethodScalarWhereWithAggregatesInput | PaymentMethodScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"PaymentMethod"> | number
-    name?: StringWithAggregatesFilter<"PaymentMethod"> | string
-    description?: StringWithAggregatesFilter<"PaymentMethod"> | string
+    name?: EnumPaymentMethodTypeWithAggregatesFilter<"PaymentMethod"> | $Enums.PaymentMethodType
+    description?: StringNullableWithAggregatesFilter<"PaymentMethod"> | string | null
+    status?: EnumPaymentMethodStatusWithAggregatesFilter<"PaymentMethod"> | $Enums.PaymentMethodStatus
     createdAt?: DateTimeWithAggregatesFilter<"PaymentMethod"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PaymentMethod"> | Date | string
   }
@@ -9018,7 +9162,7 @@ export namespace Prisma {
     responseDescription?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultCode?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultDesc?: StringNullableFilter<"MpesaTransaction"> | string | null
-    status?: StringFilter<"MpesaTransaction"> | string
+    status?: EnumPaymentStatusFilter<"MpesaTransaction"> | $Enums.PaymentStatus
     transactionDate?: DateTimeFilter<"MpesaTransaction"> | Date | string
     transactionId?: IntNullableFilter<"MpesaTransaction"> | number | null
     transaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
@@ -9053,7 +9197,7 @@ export namespace Prisma {
     responseDescription?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultCode?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultDesc?: StringNullableFilter<"MpesaTransaction"> | string | null
-    status?: StringFilter<"MpesaTransaction"> | string
+    status?: EnumPaymentStatusFilter<"MpesaTransaction"> | $Enums.PaymentStatus
     transactionDate?: DateTimeFilter<"MpesaTransaction"> | Date | string
     transactionId?: IntNullableFilter<"MpesaTransaction"> | number | null
     transaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
@@ -9092,7 +9236,7 @@ export namespace Prisma {
     responseDescription?: StringNullableWithAggregatesFilter<"MpesaTransaction"> | string | null
     resultCode?: StringNullableWithAggregatesFilter<"MpesaTransaction"> | string | null
     resultDesc?: StringNullableWithAggregatesFilter<"MpesaTransaction"> | string | null
-    status?: StringWithAggregatesFilter<"MpesaTransaction"> | string
+    status?: EnumPaymentStatusWithAggregatesFilter<"MpesaTransaction"> | $Enums.PaymentStatus
     transactionDate?: DateTimeWithAggregatesFilter<"MpesaTransaction"> | Date | string
     transactionId?: IntNullableWithAggregatesFilter<"MpesaTransaction"> | number | null
   }
@@ -9178,6 +9322,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     Token?: TokenCreateNestedManyWithoutUserInput
     Transaction?: TransactionCreateNestedManyWithoutUserInput
@@ -9192,6 +9337,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     id?: number
     Token?: TokenUncheckedCreateNestedManyWithoutUserInput
@@ -9207,6 +9353,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     Token?: TokenUpdateManyWithoutUserNestedInput
     Transaction?: TransactionUpdateManyWithoutUserNestedInput
@@ -9221,6 +9368,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     id?: IntFieldUpdateOperationsInput | number
     Token?: TokenUncheckedUpdateManyWithoutUserNestedInput
@@ -9236,6 +9384,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     id?: number
   }
@@ -9248,6 +9397,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
   }
 
@@ -9259,6 +9409,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     id?: IntFieldUpdateOperationsInput | number
   }
@@ -9399,8 +9550,9 @@ export namespace Prisma {
   }
 
   export type PaymentMethodCreateInput = {
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description?: string | null
+    status?: $Enums.PaymentMethodStatus
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutPaymentMethodInput
@@ -9408,16 +9560,18 @@ export namespace Prisma {
 
   export type PaymentMethodUncheckedCreateInput = {
     id?: number
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description?: string | null
+    status?: $Enums.PaymentMethodStatus
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutPaymentMethodInput
   }
 
   export type PaymentMethodUpdateInput = {
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutPaymentMethodNestedInput
@@ -9425,8 +9579,9 @@ export namespace Prisma {
 
   export type PaymentMethodUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutPaymentMethodNestedInput
@@ -9434,23 +9589,26 @@ export namespace Prisma {
 
   export type PaymentMethodCreateManyInput = {
     id?: number
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description?: string | null
+    status?: $Enums.PaymentMethodStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type PaymentMethodUpdateManyMutationInput = {
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PaymentMethodUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -9464,7 +9622,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
     transaction?: TransactionCreateNestedOneWithoutMpesaTransactionInput
   }
@@ -9479,7 +9637,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
     transactionId?: number | null
   }
@@ -9493,7 +9651,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     transaction?: TransactionUpdateOneWithoutMpesaTransactionNestedInput
   }
@@ -9508,7 +9666,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     transactionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -9523,7 +9681,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
     transactionId?: number | null
   }
@@ -9537,7 +9695,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9551,7 +9709,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     transactionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -9719,6 +9877,13 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type EnumUserStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.UserStatus | EnumUserStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
+  }
+
   export type EnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -9759,6 +9924,7 @@ export namespace Prisma {
     firstName?: SortOrder
     lastName?: SortOrder
     password?: SortOrder
+    status?: SortOrder
     role?: SortOrder
     id?: SortOrder
   }
@@ -9775,6 +9941,7 @@ export namespace Prisma {
     firstName?: SortOrder
     lastName?: SortOrder
     password?: SortOrder
+    status?: SortOrder
     role?: SortOrder
     id?: SortOrder
   }
@@ -9787,12 +9954,23 @@ export namespace Prisma {
     firstName?: SortOrder
     lastName?: SortOrder
     password?: SortOrder
+    status?: SortOrder
     role?: SortOrder
     id?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type EnumUserStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.UserStatus | EnumUserStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumUserStatusWithAggregatesFilter<$PrismaModel> | $Enums.UserStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumUserStatusFilter<$PrismaModel>
+    _max?: NestedEnumUserStatusFilter<$PrismaModel>
   }
 
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -9996,10 +10174,25 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type EnumPaymentMethodTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodType | EnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodTypeFilter<$PrismaModel> | $Enums.PaymentMethodType
+  }
+
+  export type EnumPaymentMethodStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodStatus | EnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodStatusFilter<$PrismaModel> | $Enums.PaymentMethodStatus
+  }
+
   export type PaymentMethodCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -10012,6 +10205,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -10020,12 +10214,40 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type PaymentMethodSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type EnumPaymentMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodType | EnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.PaymentMethodType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentMethodTypeFilter<$PrismaModel>
+    _max?: NestedEnumPaymentMethodTypeFilter<$PrismaModel>
+  }
+
+  export type EnumPaymentMethodStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodStatus | EnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentMethodStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentMethodStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentMethodStatusFilter<$PrismaModel>
+  }
+
+  export type EnumPaymentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentStatusFilter<$PrismaModel> | $Enums.PaymentStatus
   }
 
   export type TransactionNullableScalarRelationFilter = {
@@ -10088,6 +10310,16 @@ export namespace Prisma {
     id?: SortOrder
     amount?: SortOrder
     transactionId?: SortOrder
+  }
+
+  export type EnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
   }
 
   export type UserCreateNestedOneWithoutTokenInput = {
@@ -10166,6 +10398,10 @@ export namespace Prisma {
     create?: XOR<ProfileCreateWithoutUserInput, ProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: ProfileCreateOrConnectWithoutUserInput
     connect?: ProfileWhereUniqueInput
+  }
+
+  export type EnumUserStatusFieldUpdateOperationsInput = {
+    set?: $Enums.UserStatus
   }
 
   export type EnumRoleFieldUpdateOperationsInput = {
@@ -10368,6 +10604,14 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
+  export type EnumPaymentMethodTypeFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentMethodType
+  }
+
+  export type EnumPaymentMethodStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentMethodStatus
+  }
+
   export type TransactionUpdateManyWithoutPaymentMethodNestedInput = {
     create?: XOR<TransactionCreateWithoutPaymentMethodInput, TransactionUncheckedCreateWithoutPaymentMethodInput> | TransactionCreateWithoutPaymentMethodInput[] | TransactionUncheckedCreateWithoutPaymentMethodInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutPaymentMethodInput | TransactionCreateOrConnectWithoutPaymentMethodInput[]
@@ -10400,6 +10644,10 @@ export namespace Prisma {
     create?: XOR<TransactionCreateWithoutMpesaTransactionInput, TransactionUncheckedCreateWithoutMpesaTransactionInput>
     connectOrCreate?: TransactionCreateOrConnectWithoutMpesaTransactionInput
     connect?: TransactionWhereUniqueInput
+  }
+
+  export type EnumPaymentStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentStatus
   }
 
   export type TransactionUpdateOneWithoutMpesaTransactionNestedInput = {
@@ -10536,11 +10784,28 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type NestedEnumUserStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.UserStatus | EnumUserStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumUserStatusFilter<$PrismaModel> | $Enums.UserStatus
+  }
+
   export type NestedEnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
     notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
     not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
+  export type NestedEnumUserStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.UserStatus | EnumUserStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.UserStatus[] | ListEnumUserStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumUserStatusWithAggregatesFilter<$PrismaModel> | $Enums.UserStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumUserStatusFilter<$PrismaModel>
+    _max?: NestedEnumUserStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -10638,6 +10903,57 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedEnumPaymentMethodTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodType | EnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodTypeFilter<$PrismaModel> | $Enums.PaymentMethodType
+  }
+
+  export type NestedEnumPaymentMethodStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodStatus | EnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodStatusFilter<$PrismaModel> | $Enums.PaymentMethodStatus
+  }
+
+  export type NestedEnumPaymentMethodTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodType | EnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodType[] | ListEnumPaymentMethodTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodTypeWithAggregatesFilter<$PrismaModel> | $Enums.PaymentMethodType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentMethodTypeFilter<$PrismaModel>
+    _max?: NestedEnumPaymentMethodTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPaymentMethodStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentMethodStatus | EnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentMethodStatus[] | ListEnumPaymentMethodStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentMethodStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentMethodStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentMethodStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentMethodStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPaymentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentStatusFilter<$PrismaModel> | $Enums.PaymentStatus
+  }
+
+  export type NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentStatus | EnumPaymentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentStatus[] | ListEnumPaymentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
+  }
+
   export type UserCreateWithoutTokenInput = {
     email: string
     createdAt?: Date | string
@@ -10646,6 +10962,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     Transaction?: TransactionCreateNestedManyWithoutUserInput
     Profile?: ProfileCreateNestedOneWithoutUserInput
@@ -10659,6 +10976,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     id?: number
     Transaction?: TransactionUncheckedCreateNestedManyWithoutUserInput
@@ -10689,6 +11007,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     Transaction?: TransactionUpdateManyWithoutUserNestedInput
     Profile?: ProfileUpdateOneWithoutUserNestedInput
@@ -10702,6 +11021,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     id?: IntFieldUpdateOperationsInput | number
     Transaction?: TransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -10882,6 +11202,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     Token?: TokenCreateNestedManyWithoutUserInput
     Transaction?: TransactionCreateNestedManyWithoutUserInput
@@ -10895,6 +11216,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     id?: number
     Token?: TokenUncheckedCreateNestedManyWithoutUserInput
@@ -10925,6 +11247,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     Token?: TokenUpdateManyWithoutUserNestedInput
     Transaction?: TransactionUpdateManyWithoutUserNestedInput
@@ -10938,6 +11261,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     id?: IntFieldUpdateOperationsInput | number
     Token?: TokenUncheckedUpdateManyWithoutUserNestedInput
@@ -10952,6 +11276,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     Token?: TokenCreateNestedManyWithoutUserInput
     Profile?: ProfileCreateNestedOneWithoutUserInput
@@ -10965,6 +11290,7 @@ export namespace Prisma {
     firstName: string
     lastName: string
     password: string
+    status?: $Enums.UserStatus
     role?: $Enums.Role
     id?: number
     Token?: TokenUncheckedCreateNestedManyWithoutUserInput
@@ -10977,16 +11303,18 @@ export namespace Prisma {
   }
 
   export type PaymentMethodCreateWithoutTransactionsInput = {
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description?: string | null
+    status?: $Enums.PaymentMethodStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type PaymentMethodUncheckedCreateWithoutTransactionsInput = {
     id?: number
-    name: string
-    description: string
+    name: $Enums.PaymentMethodType
+    description?: string | null
+    status?: $Enums.PaymentMethodStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -11005,7 +11333,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
   }
 
@@ -11019,7 +11347,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
   }
 
@@ -11052,6 +11380,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     Token?: TokenUpdateManyWithoutUserNestedInput
     Profile?: ProfileUpdateOneWithoutUserNestedInput
@@ -11065,6 +11394,7 @@ export namespace Prisma {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
+    status?: EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     id?: IntFieldUpdateOperationsInput | number
     Token?: TokenUncheckedUpdateManyWithoutUserNestedInput
@@ -11083,16 +11413,18 @@ export namespace Prisma {
   }
 
   export type PaymentMethodUpdateWithoutTransactionsInput = {
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PaymentMethodUncheckedUpdateWithoutTransactionsInput = {
     id?: IntFieldUpdateOperationsInput | number
-    name?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    name?: EnumPaymentMethodTypeFieldUpdateOperationsInput | $Enums.PaymentMethodType
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentMethodStatusFieldUpdateOperationsInput | $Enums.PaymentMethodStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11126,7 +11458,7 @@ export namespace Prisma {
     responseDescription?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultCode?: StringNullableFilter<"MpesaTransaction"> | string | null
     resultDesc?: StringNullableFilter<"MpesaTransaction"> | string | null
-    status?: StringFilter<"MpesaTransaction"> | string
+    status?: EnumPaymentStatusFilter<"MpesaTransaction"> | $Enums.PaymentStatus
     transactionDate?: DateTimeFilter<"MpesaTransaction"> | Date | string
     transactionId?: IntNullableFilter<"MpesaTransaction"> | number | null
   }
@@ -11326,7 +11658,7 @@ export namespace Prisma {
     responseDescription?: string | null
     resultCode?: string | null
     resultDesc?: string | null
-    status?: string
+    status?: $Enums.PaymentStatus
     transactionDate?: Date | string
   }
 
@@ -11339,7 +11671,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -11353,7 +11685,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -11367,7 +11699,7 @@ export namespace Prisma {
     responseDescription?: NullableStringFieldUpdateOperationsInput | string | null
     resultCode?: NullableStringFieldUpdateOperationsInput | string | null
     resultDesc?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

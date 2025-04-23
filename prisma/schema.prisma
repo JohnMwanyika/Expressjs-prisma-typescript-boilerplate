@@ -8,6 +8,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TokenType {
+  ACCESS
+  REFRESH
+  RESET_PASSWORD
+  VERIFY_EMAIL
+}
+
 model Token {
   id          Int       @id @default(autoincrement())
   token       String
@@ -20,6 +27,17 @@ model Token {
   User        User      @relation(fields: [userId], references: [id])
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
 model User {
   email           String        @unique
   createdAt       DateTime      @default(now())
@@ -28,6 +46,7 @@ model User {
   firstName       String
   lastName        String
   password        String
+  status          UserStatus    @default(ACTIVE)
   role            Role          @default(USER)
   id              Int           @id @default(autoincrement())
   Token           Token[]
@@ -45,18 +64,6 @@ model Profile {
   User      User     @relation(fields: [userId], references: [id])
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum TokenType {
-  ACCESS
-  REFRESH
-  RESET_PASSWORD
-  VERIFY_EMAIL
-}
-
 model Transaction {
   id              Int            @id @default(autoincrement())
   phone           String
@@ -72,27 +79,46 @@ model Transaction {
   MpesaTransaction MpesaTransaction[]
 }
 
-model PaymentMethod {
-  id           Int           @id @default(autoincrement())
-  name         String
-  description  String?
-  transactions Transaction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+enum PaymentMethodType {
+  MPESA
+  PAYPAL
+  CARD
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentMethodStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model PaymentMethod {
+  id           Int                 @id @default(autoincrement())
+  name         PaymentMethodType
+  description  String?
+  status       PaymentMethodStatus @default(ACTIVE)
+  transactions Transaction[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+// M-Pesa transaction model
 model MpesaTransaction {
-  id                  Int      @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   phoneNumber         String
   amount              Float
-  checkoutRequestId   String   @unique
+  checkoutRequestId   String        @unique
   merchantRequestId   String?
   responseCode        String?
   responseDescription String?
   resultCode          String?
   resultDesc          String?
-  status              String   @default("PENDING") // or enum
-  transactionDate     DateTime @default(now())
+  status              PaymentStatus @default(PENDING) // or enum
+  transactionDate     DateTime      @default(now())
   transactionId       Int? // From M-Pesa, optional
 
   transaction Transaction? @relation(fields: [transactionId], references: [id])
