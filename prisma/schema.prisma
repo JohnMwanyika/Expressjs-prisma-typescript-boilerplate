@@ -75,7 +75,7 @@ model Transaction {
 model PaymentMethod {
   id           Int           @id @default(autoincrement())
   name         String
-  description  String
+  description  String?
   transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
